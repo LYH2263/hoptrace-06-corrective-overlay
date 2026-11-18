@@ -47,6 +47,40 @@ CREATE TABLE IF NOT EXISTS status_proofs (
   proj_value TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+
+-- corrective_overlay：独立覆盖表（落库形态择一：覆盖表，而非 hop 行快照列）。
+-- 原点 hop 行永不 UPDATE/DELETE；更正只写本表，对外读取「原点+有效覆盖」合成视图。
+CREATE TABLE IF NOT EXISTS hop_overlays (
+  id TEXT PRIMARY KEY,
+  waybill_id TEXT NOT NULL REFERENCES waybills(id),
+  hop_id TEXT NOT NULL REFERENCES hops(id),
+  new_location_code TEXT,
+  new_event_code TEXT,
+  seq INTEGER NOT NULL,
+  status TEXT NOT NULL DEFAULT 'effective',
+  reason TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  revoked_at TEXT
+);
+
+-- 失败闭兜底：同一 hop 至多一条 effective 覆盖，并发/异常写入在 DB 层被拒。
+CREATE UNIQUE INDEX IF NOT EXISTS hop_overlays_one_effective
+  ON hop_overlays(hop_id) WHERE status='effective';
+
+-- 更正事件：apply/revoke 各留一行，含覆盖前后合成视图与投影前后，供证明接口只读。
+CREATE TABLE IF NOT EXISTS correction_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  overlay_id TEXT NOT NULL REFERENCES hop_overlays(id),
+  waybill_id TEXT NOT NULL,
+  hop_id TEXT NOT NULL,
+  action TEXT NOT NULL,
+  reason TEXT,
+  before_json TEXT NOT NULL,
+  after_json TEXT NOT NULL,
+  proj_before TEXT,
+  proj_after TEXT,
+  created_at TEXT NOT NULL
+);
 """
 
 EVENT_STATUS = {

@@ -20,4 +20,18 @@ export const api = {
   ingest: () => req('/api/ingest/run', { method: 'POST' }),
   proofs: (waybillId) =>
     req(waybillId ? `/api/status-proofs?waybill_id=${encodeURIComponent(waybillId)}` : '/api/status-proofs'),
+  corrections: (waybillId) =>
+    req(waybillId ? `/api/waybills/${encodeURIComponent(waybillId)}/corrections` : '/api/corrections'),
+  correctionProof: (overlayId) => req(`/api/corrections/${encodeURIComponent(overlayId)}`),
+  applyCorrection: (waybillId, hopId, body) =>
+    req(`/api/waybills/${encodeURIComponent(waybillId)}/hops/${encodeURIComponent(hopId)}/corrections`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  revokeCorrection: (waybillId, hopId, body) =>
+    req(`/api/waybills/${encodeURIComponent(waybillId)}/hops/${encodeURIComponent(hopId)}/corrections/revoke`, {
+      method: 'POST',
+      body: JSON.stringify(body || {}),
+    }),
+  runCorrectionFixture: () => req('/api/corrections/run-fixture', { method: 'POST' }),
 }

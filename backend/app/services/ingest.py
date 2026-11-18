@@ -3,11 +3,14 @@ import uuid
 from datetime import datetime, timezone
 
 from app.db import FIXTURES_DIR, connect
-from app.seed import map_status
+from app.modules import corrective_overlay as co
 
 
 def run_batch() -> dict:
-    """基座装载：按夹具追加；乱序重排 / 旁路 / 重复隔离留给功能题空桩。"""
+    """基座装载：按夹具追加；乱序重排 / 旁路 / 重复隔离留给功能题空桩。
+
+    投影按「原点+有效覆盖」合成视图重算，与更正覆盖层同成败。
+    """
     path = FIXTURES_DIR / "ingest_batch.json"
     if not path.exists():
         return {"ok": False, "error": "缺少 ingest_batch.json"}
@@ -20,6 +23,7 @@ def run_batch() -> dict:
     try:
         conn.execute("BEGIN IMMEDIATE")
         written = 0
+        touched: set[str] = set()
         for hop in hops:
             wid = hop["waybill_id"]
             exists = conn.execute("SELECT 1 FROM waybills WHERE id=?", (wid,)).fetchone()
@@ -44,12 +48,9 @@ def run_batch() -> dict:
             )
             if conn.execute("SELECT changes()").fetchone()[0]:
                 written += 1
-                proj = map_status(hop["event_code"])
-                conn.execute("UPDATE waybills SET status_proj=? WHERE id=?", (proj, wid))
-                conn.execute(
-                    "INSERT INTO status_proofs(waybill_id, last_hop_id, mapped_code, proj_value, created_at) VALUES (?,?,?,?,?)",
-                    (wid, hop["id"], hop["event_code"], proj, _now()),
-                )
+                touched.add(wid)
+        for wid in touched:
+            co.recompute_projection(conn, wid)
         report = {
             "batch_id": batch_id,
             "cutoff_ts": cutoff,

@@ -320,6 +320,88 @@ a { color: inherit; text-decoration: none; }
   font-family: var(--mono);
 }
 .muted { color: var(--muted); }
+
+/* corrective_overlay：竖轴区分原点与覆盖后 */
+.hop-node { cursor: pointer; }
+.hop-node.picked .code { color: var(--forest-2); text-decoration: underline; }
+.hop-node.corrected::before {
+  background: var(--mint);
+  box-shadow: 0 0 0 4px #cfe6dc;
+}
+.badge-corr {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--amber-soft);
+  color: #6b4a05;
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+.hop-node .orig {
+  margin-top: 3px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.dot.corr { background: var(--mint); }
+
+.consist {
+  margin-bottom: 14px;
+  padding: 8px 10px;
+  font-size: 12px;
+  border: 1px solid;
+}
+.consist.ok { border-color: var(--mint); color: var(--mint); background: #eef7f2; }
+.consist.bad { border-color: var(--danger); color: var(--danger); background: #f9efec; }
+.consist-detail { display: block; margin-top: 3px; font-family: var(--mono); font-size: 11px; }
+
+.corr-panel .fld {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.corr-panel .fld input {
+  display: block;
+  width: 100%;
+  margin-top: 3px;
+  padding: 7px 8px;
+  border: 1px solid var(--line);
+  font: inherit;
+  font-family: var(--mono);
+  background: #fff;
+  color: var(--ink);
+}
+.corr-actions { display: flex; gap: 8px; margin-top: 10px; }
+.btn.ghost {
+  background: transparent;
+  color: var(--forest);
+  border: 1px solid var(--forest);
+}
+.btn.ghost:hover { background: #e7efe9; }
+.btn:disabled { opacity: 0.55; cursor: default; }
+.okmsg { margin-top: 10px; font-size: 12px; color: var(--mint); }
+.errmsg { margin-top: 10px; font-size: 12px; color: var(--danger); }
+
+.page-card.wide { max-width: 1180px; }
+.page-card h2.sub {
+  margin: 22px 0 10px;
+  font-family: var(--display);
+  font-size: 15px;
+  letter-spacing: 0.1em;
+}
+.report {
+  margin-top: 14px;
+  padding: 12px;
+  background: #f0f6f2;
+  border: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: pre-wrap;
+}
 .stat-row {
   display: flex;
   flex-wrap: wrap;

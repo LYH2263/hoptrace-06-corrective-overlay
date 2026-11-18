@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from app.db import connect
+from app.modules import corrective_overlay as co
 from app.services import ingest as ingest_svc
 from app.services import timeline as timeline_svc
 
@@ -20,6 +21,12 @@ def overview():
                 "SELECT COUNT(*) AS c FROM hops WHERE channel='sidecar'"
             ).fetchone()["c"],
             "quarantine": conn.execute("SELECT COUNT(*) AS c FROM quarantine").fetchone()["c"],
+            "overlays_effective": conn.execute(
+                "SELECT COUNT(*) AS c FROM hop_overlays WHERE status='effective'"
+            ).fetchone()["c"],
+            "correction_events": conn.execute(
+                "SELECT COUNT(*) AS c FROM correction_events"
+            ).fetchone()["c"],
         }
     finally:
         conn.close()
@@ -53,6 +60,7 @@ def waybill_timeline(waybill_id: str):
             "waybill": dict(wb),
             "hops": hops,
             "proof": dict(proof) if proof else None,
+            "consistency": co.consistency(conn, waybill_id),
         }
     finally:
         conn.close()
